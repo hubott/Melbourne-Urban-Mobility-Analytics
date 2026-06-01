@@ -1,2 +1,4 @@
 data/raw/
 *.parquet
+.DS_Store
+*/.DS_Store

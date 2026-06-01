@@ -93,13 +93,62 @@ else:
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.metric("Total Records", len(df_filtered))
+    st.metric(
+        "Total Pedestrians",
+        f"{int(df_filtered['total_of_directions'].sum()):,}"
+    )
 
 with col2:
-    st.metric("Avg Daily Traffic", int(df_filtered["total_of_directions"].mean()))
+    st.metric(
+        "Average Hourly Traffic",
+        f"{int(df_filtered['total_of_directions'].mean()):,}"
+    )
 
 with col3:
-    st.metric("Sensors", df_filtered["location_name"].nunique())
+    busiest = (
+        df_filtered.groupby("location_name")["total_of_directions"]
+        .mean()
+        .idxmax()
+    )
+    st.metric(
+        "Busiest Location",
+        busiest
+    )
+
+
+
+# --- Seasonal Trends ---
+daily = (
+    df_filtered.groupby(df_filtered["datetime"].dt.date)["total_of_directions"]
+    .sum()
+    .reset_index()
+)
+
+# rename column properly
+daily.columns = ["date", "total_of_directions"]
+
+# convert back to datetime (IMPORTANT for plotting + rolling stability)
+daily["date"] = pd.to_datetime(daily["date"])
+
+# sort before rolling (VERY important)
+daily = daily.sort_values("date")
+
+# rolling average
+daily["rolling_30d"] = (
+    daily["total_of_directions"]
+    .rolling(30)
+    .mean()
+)
+
+fig = px.line(
+    daily,
+    x="date",
+    y="rolling_30d",
+    title="Melbourne Pedestrian Activity (30-Day Rolling Average)"
+)
+
+st.subheader("📈 Daily Pedestrian Activity")
+st.plotly_chart(fig, use_container_width=True)
 
 # --- HOURLY PATTERN ---
 st.subheader("📊 Hourly Traffic Pattern")
@@ -118,7 +167,7 @@ mean_per_record.index = mean_per_record.index.map({False: "Weekdays", True: "Wee
 st.bar_chart(mean_per_record)
 
 
-
+# --- HOURLY PATTERNS BY DAY OF WEEK ---
 
 df_filtered["day_of_week"] = df_filtered["datetime"].dt.day_name()
 df_filtered["hour"] = df_filtered["datetime"].dt.hour
@@ -153,6 +202,7 @@ st.subheader("📊 Hourly Patterns by Selected Days")
 st.line_chart(pivot_df)
 
 
+# --- ENVIRONMENTAL IMPACTS ---
 st.subheader("🌡️ Temperature Impact on Pedestrian Activity")
 
 # Ensure clean numeric values
@@ -193,6 +243,8 @@ fig = px.bar(
 
 st.plotly_chart(fig, use_container_width=True)
 
+# --- RAIN IMPACT ---
+
 st.subheader("🌧️ Rain Impact on Pedestrian Activity")
 
 df_rain = df_filtered.dropna(subset=["precipitation"])
@@ -219,6 +271,7 @@ st.plotly_chart(fig, use_container_width=True)
 
 
 
+# --- HEATMAP ---
 
 heat_hourly_df = get_hourly_heatmap(df)
 heat_hourly_df = heat_hourly_df.sort_values("hour")
@@ -275,6 +328,7 @@ st.plotly_chart(fig, use_container_width=True)
 st.caption("Color scale is consistent across all time periods for accurate comparison.")
 
 
+# --- Top 5 Locations ---
 top5 = (
     heat_filtered
     .sort_values("total_of_directions", ascending=False)
@@ -295,11 +349,18 @@ st.dataframe(top5_display, use_container_width=True)
 
 
 
+
+
+
+
 # --- INSIGHTS SECTION ---
 st.subheader("🧠 Key Insights")
 
 st.markdown("""
-- Peak traffic occurs during commuter hours (morning and evening)
-- Certain sensors consistently show higher pedestrian volumes
-- Weekend patterns differ significantly from weekdays
+- High-traffic locations exhibit three distinct activity periods: a morning commuter peak, elevated midday activity, and a dominant evening peak, indicating a mix of commuting and destination-based pedestrian movement.
+- Significant variation in pedestrian volume across sensor locations, with a small subset of high-traffic areas consistently dominating aggregate activity
+- Weekday traffic patterns show stronger and more structured peaks compared to weekends, where activity is more evenly distributed across the day
+- Environmental factors show measurable impact on pedestrian activity, with rainy conditions being associated with approximately 10% lower pedestrian activity compared to dry conditions
+- Pedestrian activity increased substantially with temperature, rising more than threefold between sub-5°C and 20–25°C conditions before plateauing at higher temperatures
+- Identified strong seasonal structure in pedestrian activity, with consistent winter troughs (June–July), summer growth, and recurring peaks in March–April across multiple years, suggesting stable seasonal behavioural patterns in urban mobility.
 """)
