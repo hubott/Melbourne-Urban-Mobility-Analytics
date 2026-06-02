@@ -143,10 +143,12 @@ daily["rolling_30d"] = (
 fig = px.line(
     daily,
     x="date",
-    y="Pedestrian Count",
+    y="rolling_30d",
     title="Melbourne Pedestrian Activity (30-Day Rolling Average)"
 )
 
+st.xaxis_title = "Date"
+st.yaxis_title = "Average Pedestrian Count"
 st.subheader("📈 Daily Pedestrian Activity")
 st.plotly_chart(fig, use_container_width=True)
 
