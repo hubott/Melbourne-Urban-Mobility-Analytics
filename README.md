@@ -46,6 +46,9 @@ The original raw dataset is not included in this repository due to its size. Pro
 
 ## Repository Structure
 
+## Repository Structure
+
+```
 .
 ├── app/
 │   └── app.py                  # Streamlit dashboard entry point
@@ -62,14 +65,15 @@ The original raw dataset is not included in this repository due to its size. Pro
 │   └── preprocess.py          # Orchestrates full data preprocessing pipeline
 │
 ├── src/
-│   ├── clean_data.py          # Raw data cleaning utilities
-│   ├── features.py            # Feature engineering functions
-│   ├── load_data.py           # Data loading helpers (Parquet/CSV ingestion)
-│   └── weather_data.py        # Weather data integration & processing
+│   ├── clean_data.py
+│   ├── features.py
+│   ├── load_data.py
+│   └── weather_data.py
 │
 ├── requirements.txt
 ├── README.md
 └── .gitignore
+```
 
 
 ## Running Locally
