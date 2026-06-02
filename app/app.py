@@ -143,7 +143,7 @@ daily["rolling_30d"] = (
 fig = px.line(
     daily,
     x="date",
-    y="rolling_30d",
+    y="Pedestrian Count",
     title="Melbourne Pedestrian Activity (30-Day Rolling Average)"
 )
 
